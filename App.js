@@ -1,25 +1,42 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import { Text, View } from 'react-native';
-
+import { Text, View, Image } from 'react-native';
+import * as Font from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
+import { Asset, useAssets, } from "expo-asset";
 SplashScreen.preventAutoHideAsync();
 
 
 export default function App () {
   const [ready, setReady] = useState(false);
+
+  /* const [assets] = useAssets([require("./1.jpg")])
+  const [loaded] = Font.useFonts(Ionicons.font) */
+  //아래 장황한 코드들을 단 두줄로 줄일 수 있는 Hook이다.
+  //useAssets과 useFonts를 쓰면 간단하게 preload할 수 있다.
+ //단 Image.prefetch 처럼 외부에서 파일을 preload할 수는 없다.
+  const loadFonts = (fonts) => fonts.map((font) => Font.loadAsync(font));
   
+  const loadImages = (images) =>
+    images.map((image) => {
+      if (typeof image === "string") {
+        return Image.prefetch(image);
+      } else {
+        return Asset.loadAsync(image);
+      }
+    });//외부 서버로부터 파일을 preload할 때는 Image.prefetch를,
+       //noovies폴더 내부에 있는 파일을 preload할 때는 Asset.loadAsync를 한다.
   
   useEffect( async () => {
     async function prepare() {
       try {
-        await new Promise((resolve)=> setTimeout(resolve, 8000))
-        // pre-load fonts, call APIs, etc
-        // 강의의 startLoading과 동일하게 동작
+        const fonts = loadFonts([Ionicons.font]);
+        const images = loadImages([require("./1.jpg"),"https://www.dong-wha.co.kr/product/pimage/324_img21.jpg"])
+        await Promise.all([...fonts, ...images]);
+        //fonts와 images의 promise들에 await을 붙여주는 Promise.all
       } catch (error) {
-        // 강의의 onError와 동일하게 동작
         console.warn(error);
       } finally {
-        // 강의의 onFinish와 동일하게 동작
         setReady(true);
       }
     }
