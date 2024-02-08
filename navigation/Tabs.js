@@ -16,7 +16,10 @@ const Tabs = () => {
    
    return (
 <Tab.Navigator 
-    initialRouteName="Search"
+    sceneContainerStyle={{
+        backgroundColor: isDark ? BLACK_COLOR : "white",
+    }}//sceneContainerStyle을 통해 배경색을 정해주면 스크린 안에
+    //무언가를 추가할 때마다 배경색을 넣어주지 않아도 된다. !!!
     screenOptions={{
         tabBarStyle: {
             backgroundColor: isDark ? BLACK_COLOR : "white",
