@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  RefreshControl,
   ScrollView,
 } from "react-native";
 import Swiper from "react-native-web-swiper";
@@ -81,6 +82,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const API_KEY = '1ca048192caae0c193269bc2b692dabc'
 
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
+  const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [nowPlaying, setNowPlaying] = useState<any[]>([]);
   const [upcoming, setUpcoming] = useState<any[]>([]);
@@ -93,6 +95,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       )
     ).json();
     setTrending(results);
+    console.log("getTrending")
   };
   
   const getUpcoming = async () => {
@@ -102,6 +105,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       )
     ).json();
     setUpcoming(results);
+    console.log("getUpcoming")
   };
   
   const getNowPlaying = async () => {
@@ -112,6 +116,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
     )
   ).json();
     setNowPlaying(results);
+    console.log("getNowplaying")
   };
   const getData = async () => {
     await Promise.all([getTrending(), getUpcoming(), 
@@ -125,13 +130,25 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   useEffect(() => {
       getData();
     }, []);
-
+    const onRefresh = async () => {
+      setRefreshing(true);
+      await getData();
+      setRefreshing(false);
+    }
+    //refreshControl을 만들 때 태그로 RefreshControl을 만들어주고,
+    //내부에 props를 보내줘야 한다.
   return loading ? (
     <Loader>
       <ActivityIndicator />
     </Loader>
   ) : (
-    <Container>
+    <Container
+     refreshControl={
+      <RefreshControl 
+        refreshing={refreshing} 
+        onRefresh={onRefresh}
+      />}
+    >
       <Swiper 
         loop
         timeout={4}
@@ -150,42 +167,50 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
           voteAverage={movie.vote_average}
           overview={movie.overview}
           />))}
-        </Swiper>
+      </Swiper>
+      <ListContainer>
         <ListTitle>Trending Movies</ListTitle>
-      <TrendingScroll
-        contentContainerStyle={{ paddingLeft: 30 }}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
-        {trending.map((movie) => (
-          <Movie key={movie.id}>
+        <TrendingScroll
+          contentContainerStyle={{ paddingLeft: 30 }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {trending.map((movie) => (
+            <Movie key={movie.id}>
             <Poster path={movie.poster_path} />
             <Title>
               {movie.original_title.slice(0, 13)}
               {movie.original_title.length > 13 ? "..." : null}
             </Title>
-            {movie.vote_average === 0 ? null : (
+              {movie.vote_average === 0 ? null : (
             <Votes>
               ⭐️ {movie.vote_average}/10
-              </Votes>)}
-          </Movie>
-        ))}
-      </TrendingScroll>
-      <ListContainer>
-        <ComingSoonTitle>Comming Soon!</ComingSoonTitle>
+            </Votes>
+              )}
+            </Movie>
+          ))}
+        </TrendingScroll>
+      </ListContainer>
+      <ComingSoonTitle>Comming Soon!</ComingSoonTitle>
         {upcoming.map((movie) => (
         <HMovie key={movie.id}>
           <Poster path={movie.poster_path} />
           <HColumn>
-          <Title>
-              {movie.original_title.slice(0, 13)}
-              {movie.original_title.length > 13 ? "..." : null}
-            </Title>
-            <Release>comming soon</Release>
-            <Overview>{movie.overview}</Overview>
-            </HColumn>
+            <Title>{movie.original_title}</Title>
+            <Release>
+              {new Date(movie.release_date).toLocaleDateString("ko", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </Release>
+            <Overview>
+                {movie.overview !== "" && movie.overview.length > 80
+                  ? `${movie.overview.slice(0, 140)}...`
+                  : movie.overview}
+            </Overview>
+          </HColumn>
         </HMovie>))}
-      </ListContainer>
     </Container>
   );
 };
