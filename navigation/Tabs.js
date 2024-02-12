@@ -18,9 +18,9 @@ const Tabs = () => {
 <Tab.Navigator 
     sceneContainerStyle={{
         backgroundColor: isDark ? BLACK_COLOR : "white",
-    }}//sceneContainerStyle을 통해 배경색을 정해주면 스크린 안에
-    //무언가를 추가할 때마다 배경색을 넣어주지 않아도 된다. !!!
+    }}
     screenOptions={{
+        unmountOnBlur: true, // <- 다른 컴포넌트로 이동하면 원래 있던 컴포넌트를 unmount
         tabBarStyle: {
             backgroundColor: isDark ? BLACK_COLOR : "white",
           },
