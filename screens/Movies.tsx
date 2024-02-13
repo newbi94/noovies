@@ -10,15 +10,13 @@ import styled from "styled-components/native";
 import Slide from "../components/Slide";
 import VMedia from "../components/VMedia";
 import HMedia from "../components/HMedia";
-import { moviesApi } from "../api";
-import { useQuery } from "@tanstack/react-query";
-//import { useQuery } from "react-query";
+import { Movie, MovieResponse, moviesApi } from "../api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Loader from "../components/Loader";
+import HList from "../components/HList";
 
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-`;
+
+
 
 const ListTitle = styled.Text`
   color: ${(props) => props.theme.textColor};
@@ -48,64 +46,77 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
-  const [refreshing, setRefreshing] = useState(false);
   
-  const { isLoading: nowPlayingLoading, data: nowPlayingData } = useQuery(
-    'nowPlaying',
-    moviesApi.nowPlaying
+  const queryClient = useQueryClient();
+  
+/*   const { isLoading: nowPlayingLoading, data: nowPlayingData } = useQuery(
+    ['nowPlaying'],
+    moviesApi.nowPlaying,
   );
-  const { data } = useQuery({
-    queryKey: [QueryKeys.PRODUCTS],
-    queryFn: () =>
-      fetcher({
-        method: "GET",
-        path: "/products",
-      }),
-  });
   const { isLoading: upcomingLoading, data: upcomingData } = useQuery(
     ['upcoming'],
-    moviesApi.upcoming
+    moviesApi.upcoming,
   );
   const { isLoading: trendingLoading, data: trendingData } = useQuery(
     ['trending'],
-    moviesApi.trending
-  );
-  /* ReactQuery는 데이터 fetching, caching, 동기화, 서버 데이터 업데이트 등을 쉽게 만들어주는 라이브러리이다.
-  loading, error, state 등 여러 기능들을 기존에는 각각 따로 구현해야 했다면 
-  useQuery를 사용하여 fetching하면 이 모두를 함께 제공한다.
-  그리고 ReactQuery의 cach시스템 또한 효율적이다. 한번 fetch했던 useQuery는 
-  ReactQuery의 cach로 남아 다른 컴포넌트나 함수에서 쓰여도 다시 fetch하지 않는다. 
-  첫번째 props " x "는 key이고, 두번째 props moviesApi.y는 api fetcher함수다.
+    moviesApi.trending,
+  ); 
+  useQuery의 기존 구성방식이다
+  지금 v5로 넘어온 ReactQuery에서는 tanstack/react-query로 import하고
+  구성방식도 아래처럼 해주어야 한다.
   */
+ 
+  const { 
+    isLoading: nowPlayingLoading, 
+    data: nowPlayingData,  
+    isRefetching: isRefetchingNowPlaying, 
+  } = useQuery<MovieResponse>({
+    queryKey: ['movies','nowPlaying'],
+    queryFn: moviesApi.nowPlaying,
+  });
+  //키는 반드시 array, ['a' , 'b' ] -> a는 카테고리 역할을 한다.
+  //cache로 저장될 때 카테고리가 있으면 굉장히 유용하다.
+  const { 
+    isLoading: upcomingLoading, 
+    data: upcomingData, 
+    isRefetching: isRefetchingUpcoming,
+  } = useQuery<MovieResponse>({
+    queryKey: ['movies','upcoming'],
+    queryFn: moviesApi.upcoming,
+  });
   
-  const onRefresh = async () => {
-  }
-  
-  const renderVMedia = ({ item }) => (
-      <VMedia
-        posterPath={item.poster_path}
-        originalTitle={item.original_title}
-        voteAverage={item.vote_average}
-      />)
+  const { 
+    isLoading: trendingLoading, 
+    data: trendingData,
+    isRefetching: isRefetchingTrending, 
+  } = useQuery<MovieResponse>({
+    queryKey: ['movies','trending'],
+    queryFn: moviesApi.trending,
+  });
 
-  const renderHMedia = ({item}) => (
+  const onRefresh = async () => {
+    queryClient.refetchQueries({queryKey: ["movies"] })
+  }
+  //movies 카테고리가 붙은 쿼리를 refetch한다.
+  
+  const renderHMedia = ({ item }:{item:Movie}) => (
       <HMedia 
-        posterPath={item.poster_path}
+        posterPath={item.poster_path || ""}
         originalTitle={item.original_title}
         releaseDate={item.release_date}
         overview={item.overview}
         voteAverage={item.vote_average}
       />)
   
-  const movieKeyExtractor = (item) => item.id + "";
+  const movieKeyExtractor = (item:Movie) => item.id + "";
   
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
+  const refreshing = isRefetchingNowPlaying || isRefetchingUpcoming || isRefetchingTrending;
+  console.log(refreshing);
 
   return loading ? (
-    <Loader>
-      <ActivityIndicator />
-    </Loader>
-  ) : (
+    <Loader />
+  ) : ( upcomingData ? (
     <FlatList 
         refreshing={refreshing} 
         onRefresh={onRefresh}
@@ -120,29 +131,21 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
           width: "100%",
           height: SCREEN_HEIGHT / 4,
         }}>
-        {nowPlayingData.results.map((movie) => (
+        {nowPlayingData?.results.map((movie) => (
           <Slide 
           key={movie.id}
-          backdropPath={movie.backdrop_path}
-          posterPath={movie.poster_path}
+          backdropPath={movie.backdrop_path || ""}
+          posterPath={movie.poster_path || ""}
           originalTitle={movie.original_title}
           voteAverage={movie.vote_average}
           overview={movie.overview}
           />))}
       </Swiper>
-      <ListContainer>
-        <ListTitle>Trending Movies</ListTitle>
-        <FlatList
-          style={{marginTop:20}}
+      {trendingData ? (
+        <HList 
+          title="Trending Movies"
           data={trendingData.results}
-          horizontal
-          keyExtractor={movieKeyExtractor}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 30 }}
-          ItemSeparatorComponent={VSeparator}
-          renderItem={renderVMedia}
-          />  
-      </ListContainer>
+        />) : null }
       <ComingSoonTitle>Comming Soon!</ComingSoonTitle>
       </>
       }
@@ -151,6 +154,7 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       ItemSeparatorComponent={HSeparator}
       renderItem={renderHMedia}
         />
+        ) : null
   );
 };
 export default Movies;
