@@ -39,8 +39,19 @@ export const moviesApi = {
 
     nowPlaying : () => 
     fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1&region=KR`)
-    .then((res) => res.json()) 
-};
+    .then((res) => res.json()), 
+    
+    search: ({ queryKey }) => {
+      const [_, query] = queryKey;
+      console.log(query)
+      return fetch(
+        `${BASE_URL}/search/movie?api_key=${API_KEY}&language=en-US&page=1&query=${query}`
+      ).then((res) => res.json());
+    },
+  };
+  //const [_, x] = y;
+  //받아온 y(array)는 queryKey이다. 거기서 두번째 인자를 query로 정의하는 것.
+  //즉 빈자리는 원래 'searchmovies'인데, 나중에 카테고리로써 역할을 할 것이다(?).
 
 export const tvApi = {
     trending: () =>
@@ -55,4 +66,10 @@ export const tvApi = {
       fetch(`${BASE_URL}/tv/top_rated?api_key=${API_KEY}`).then((res) =>
         res.json()
       ),
+      search: ({ queryKey }) => {
+        const [_, query] = queryKey;
+        return fetch(
+          `${BASE_URL}/search/tv?api_key=${API_KEY}&language=en-US&page=1&query=${query}`
+        ).then((res) => res.json());
+      },
   };

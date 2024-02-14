@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components/native";
 import { tvApi } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,10 +11,11 @@ const Tv = () => {
 
 const queryClient = useQueryClient();
 
+const [refreshing,setRefreshing] = useState(false);
+
     const { 
         isLoading: todayLoading, 
-        data: todayData,  
-        isRefetching: isRefetchingToday, 
+        data: todayData,   
       } = useQuery({
         queryKey: ['tv','today'],
         queryFn: tvApi.airingToday,
@@ -22,8 +23,7 @@ const queryClient = useQueryClient();
 
     const { 
         isLoading: topLoading, 
-        data: topData,  
-        isRefetching: isRefetchingTop, 
+        data: topData,   
       } = useQuery({
         queryKey: ['tv','top'],
         queryFn: tvApi.topRated,
@@ -31,19 +31,19 @@ const queryClient = useQueryClient();
 
     const { 
         isLoading: trendingLoading, 
-        data: trendingData,  
-        isRefetching: isRefetchingTrending, 
+        data: trendingData,   
       } = useQuery({
         queryKey: ['tv','trending'],
         queryFn: tvApi.trending,
     });
       
     const onRefresh = async () => {
-        queryClient.refetchQueries({queryKey: ["tv"] })
-    }
+        setRefreshing(true);
+        await queryClient.refetchQueries({queryKey: ["tv"] });
+        setRefreshing(false);
+    };
 
     const loading = todayLoading || topLoading || trendingLoading;
-    const refreshing = isRefetchingToday || isRefetchingTop || isRefetchingTrending;
 
     return ( loading ? (
         <Loader />
@@ -58,8 +58,8 @@ const queryClient = useQueryClient();
       contentContainerStyle={{ paddingVertical: 30 }}
     >
             <HList title="Trending Tv" data={trendingData.results}/>
-            <HList title="Today Tv" data={todayData.results}/>
-            <HList title="Top Tv" data={topData.results}/>
+            <HList title="Airing Today" data={todayData.results}/>
+            <HList title="Top Rated" data={topData.results}/>
         </ScrollView>
     );
 };
