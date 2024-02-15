@@ -12,7 +12,7 @@ const Tab = createBottomTabNavigator();
 
 const Tabs = () => {
     const isDark = useColorScheme() === "dark";
-    console.log(isDark);
+    
    
    return (
 <Tab.Navigator 
@@ -20,7 +20,7 @@ const Tabs = () => {
         backgroundColor: isDark ? BLACK_COLOR : "white",
     }}
     screenOptions={{
-        unmountOnBlur: true, // <- 다른 컴포넌트로 이동하면 원래 있던 컴포넌트를 unmount
+        unmountOnBlur: true,
         tabBarStyle: {
             backgroundColor: isDark ? BLACK_COLOR : "white",
           },

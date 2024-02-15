@@ -2,6 +2,9 @@ import React from "react";
 import styled from "styled-components/native";
 import Poster from "./Poster";
 import Votes from "./Votes";
+import { useNavigation } from "@react-navigation/native";
+import { TouchableOpacity } from "react-native";
+import { Movie } from "../api";
 
 const Title = styled.Text`
   color: ${(props) => props.theme.textColor};
@@ -41,6 +44,7 @@ interface HMediaProps {
     overview: string;
     releaseDate?: string;
     voteAverage?: number;
+    fullData: Movie;
 }
 /* ?를 붙여 선택적으로 props를 받지만, 아래에 해당 코드처럼 
 ?를 통해 받을 때와 받지 않을 때를 설정하지 않으면 앱 가동에는 큰 문제가
@@ -57,33 +61,45 @@ const HMedia:React.FC<HMediaProps> = ({
     releaseDate,
     overview,
     voteAverage,
+    fullData,
     }) => {
+      const navigation = useNavigation();
+      const goToDetail = () => {
+        navigation.navigate("Stack", { 
+          screen: "Detail", 
+          params:{
+            ...fullData,
+          }
+        });
+      }
         return(
-        <HMovie>
-            <Poster path={posterPath} />
-            <HColumn>
-                <Title>
-                    {originalTitle.length > 30
-                        ? `${originalTitle.slice(0, 30)}...`
-                        : originalTitle}
-                </Title>
-                {releaseDate ? (
-                    <Release>
-                        {new Date(releaseDate).toLocaleDateString("ko", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                        })}
-                    </Release>
-                ) : null}
-                    {voteAverage ? <Votes votes={voteAverage} /> : null}
-                <Overview>
-                    {overview !== "" && overview.length > 140
-                    ? `${overview.slice(0, 140)}...`
-                    : overview}
-                </Overview>
-            </HColumn>
-        </HMovie>
+        <TouchableOpacity onPress={goToDetail}>  
+          <HMovie>
+              <Poster path={posterPath} />
+              <HColumn>
+                  <Title>
+                      {originalTitle.length > 30
+                          ? `${originalTitle.slice(0, 30)}...`
+                          : originalTitle}
+                  </Title>
+                  {releaseDate ? (
+                      <Release>
+                          {new Date(releaseDate).toLocaleDateString("ko", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                          })}
+                      </Release>
+                  ) : null}
+                      {voteAverage ? <Votes votes={voteAverage} /> : null}
+                  <Overview>
+                      {overview !== "" && overview.length > 140
+                      ? `${overview.slice(0, 140)}...`
+                      : overview}
+                  </Overview>
+              </HColumn>
+          </HMovie>
+        </TouchableOpacity>
         )
 }
 

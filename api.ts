@@ -1,3 +1,5 @@
+import { QueryFunction } from "@tanstack/react-query";
+
 const API_KEY = '1ca048192caae0c193269bc2b692dabc';
 const BASE_URL = "https://api.themoviedb.org/3";
 
@@ -16,19 +18,44 @@ export interface Movie {
     video: boolean;
     vote_average: number;
     vote_count: number;
-  }
-  
-  interface BaseResponse {
-    page: number;
-    total_results: number;
-    total_pages: number;
-  }
-  
-  export interface MovieResponse extends BaseResponse {
-    results: Movie[];
-  }
+}
 
-export const moviesApi = { 
+export interface TV {
+    name: string;
+    original_name: string;
+    origin_country: string[];
+    vote_count: number;
+    backdrop_path: string | null;
+    vote_average: number;
+    genre_ids: number[];
+    id: number;
+    original_language: string;
+    overview: string;
+    poster_path: string | null;
+    first_air_date: string;
+    popularity: number;
+    media_type: string;
+}  
+  
+interface BaseResponse {
+  page: number;
+  total_results: number;
+  total_pages: number;
+}
+  
+export interface MovieResponse extends BaseResponse {
+  results: Movie[];
+}
+
+export interface TVResponse extends BaseResponse {
+  results: TV[];
+}
+
+interface Fetchers<T> {
+  [key: string]: QueryFunction<T>;
+}
+
+export const moviesApi: Fetchers<MovieResponse> = { 
     trending : () => 
     fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`)
     .then((res) => res.json()), 
@@ -49,11 +76,8 @@ export const moviesApi = {
       ).then((res) => res.json());
     },
   };
-  //const [_, x] = y;
-  //받아온 y(array)는 queryKey이다. 거기서 두번째 인자를 query로 정의하는 것.
-  //즉 빈자리는 원래 'searchmovies'인데, 나중에 카테고리로써 역할을 할 것이다(?).
 
-export const tvApi = {
+  export const tvApi: Fetchers<TVResponse> = {
     trending: () =>
       fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`).then((res) =>
         res.json()
