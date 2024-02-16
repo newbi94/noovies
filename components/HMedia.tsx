@@ -65,6 +65,7 @@ const HMedia:React.FC<HMediaProps> = ({
     }) => {
       const navigation = useNavigation();
       const goToDetail = () => {
+        //@ts-ignore
         navigation.navigate("Stack", { 
           screen: "Detail", 
           params:{

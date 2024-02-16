@@ -31,7 +31,7 @@ const VMedia:React.FC<VMediaProps> = ({
     }) => {
       const navigation = useNavigation();
       const goToDetail = () => {
-        
+        //@ts-ignore
         navigation.navigate("Stack", { 
           screen: "Detail", 
           params:{
@@ -39,7 +39,7 @@ const VMedia:React.FC<VMediaProps> = ({
           }
         });
       }
-      //navigate(a, {b})에서 위와 같이 b에 파라미터를 실어보낼수있다.
+      //navigate( a, {b} )에서 위와 같이 b에 파라미터를 실어보낼수있다.
 
     return (
       <TouchableOpacity onPress={goToDetail}>
