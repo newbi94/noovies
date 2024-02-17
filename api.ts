@@ -60,9 +60,18 @@ export const moviesApi: Fetchers<MovieResponse> = {
     fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`)
     .then((res) => res.json()), 
 
-    upcoming : () => 
-    fetch(`${BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=en-US&page=1&region=KR`)
+    upcoming : ({ pageParam }) => 
+    fetch(`${BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=en-US&page=${ pageParam ? pageParam : 1}`)
     .then((res) => res.json()), 
+    
+/*     
+여기서 인자로 들어가는 { pageParam }을 이름이라도 바꾸면 movie들의 key가 겹친다는 에러 :
+’ Warning: Encountered two children with the same key, `1172551`. Keys should be unique 
+so that components maintain their identity across updates. Non-unique keys may cause children to be 
+duplicated and/or omitted — the behavior is unsupported and could change in a future version. ‘
+    
+가 발생하고, 뒤에 있는 ${ pageParam ? pageParam : 1 }처럼 기본 값을 주어지지 않고 단순히 
+${ pageParam } 만 넣으면  ‘ TypeError: Cannot read property 'id' of undefined ‘ 가 발생한다. */
 
     nowPlaying : () => 
     fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1&region=KR`)
