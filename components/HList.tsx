@@ -15,7 +15,7 @@ const ListContainer = styled.View`
   margin-bottom: 40px;
 `;
 
-export const HListSeparator = styled.View`
+export const HListSeperator = styled.View`
   width: 20px;
 `;
 
@@ -24,15 +24,25 @@ interface HListProps {
     data: Movie[] | TV[];
   }
   
-  const HList: React.FC<HListProps> = ({ title, data }) => (
+  const HList: React.FC<HListProps> = ({ title, data, hasNext, fetchNext }) => {
+    
+    const loadMore = () => {
+      if(hasNext){
+        fetchNext();
+        console.log("HList", hasNext);
+      }
+      console.log("HList", hasNext);
+    }
 
+    return (
     <ListContainer>
         <ListTitle>{title}</ListTitle>
         <FlatList
+                onEndReached={loadMore}
                 data={data}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                ItemSeparatorComponent={HListSeparator}
+                ItemSeparatorComponent={HListSeperator}
                 contentContainerStyle={{ paddingHorizontal: 30 }}
                 keyExtractor={(item: Movie | TV) => item.id + ""}
                 renderItem={({ item }: { item: Movie | TV }) => (
@@ -48,7 +58,8 @@ interface HListProps {
                 )}
         />
         </ListContainer>
-            )
+    );      
+};
 
 
             export default HList;
